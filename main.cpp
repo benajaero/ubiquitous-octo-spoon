@@ -128,7 +128,7 @@ void opcode() {
 
                 case 0x0006:
                     V[0xF] = V[x] & 1;
-                    V[x] >> 1;
+                    V[x] = V[x] >> 1;
                     pc += 2;
                 break;
                 case 0x0007:
@@ -140,7 +140,7 @@ void opcode() {
                 
                 case 0x000E:
                     V[0xF] = V[x] & 0xF000;
-                    V[x] << 1;
+                    V[x] = V[x] << 1;
                 break;
                 default:
                     printf("Unknown opcode, %d at program counter number %d", opcode, pc);
