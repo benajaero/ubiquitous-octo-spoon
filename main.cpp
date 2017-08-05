@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdlib>
-#include <SFML/Graphic.hpp>
+#include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Audio.hpp>
 
@@ -9,12 +9,13 @@ int pc;
 char V[16]; //data registers
 short I; //address register
 short stack[24];
+unsigned short sp;
 int timer;
 int soundTimer;
 char keyboard[16];
 char fontSet[50]; //I don't know how big this is yet.
-void opcode();
 void draw(char x, char y, char height);
+void opcode();
 void input();
 void clearScreen();
 
@@ -32,7 +33,7 @@ void clearScreen() {
 
 }
 
-void draw() {
+void draw(char x, char y, char height) {
 
 }
 
@@ -41,11 +42,12 @@ void input() {
 }
 void opcode() {
     unsigned short opcode = memory[pc] << 8 | memory[pc+1];
+    int x = (opcode & 0x0F00) >> 4;
+    int y = (opcode & 0x00F0) >> 8;
+    int NNN = opcode & 0x0FFF;
+    int NN = opcode & 0x00FF;
+
     switch (opcode & 0xF000) {
-        int x = (opcode & 0x0F00) >> 4;
-        int y = (opcode & 0x00F0) >> 8;
-        int NNN = opcode & 0x0FFF;
-        int NN = opcode & 0x00FF;
         case 0x0000:
             switch(opcode & 0x00FF) {
                 case 0x00E0:
@@ -62,7 +64,7 @@ void opcode() {
             pc = opcode & 0x0FFF;
         break;
         case 0x2000:
-            stack[sp];
+            stack[sp] = pc;
             ++sp;
             pc = opcode & 0x0FFF;
         break;
