@@ -32,8 +32,8 @@ class chip8 {
             }
         }
 
-        void loadFile() {
-
+        void loadFile(char* name) {
+            
         }
 
         void clearScreen() {
@@ -237,6 +237,10 @@ class chip8 {
 };
 
 int main(int argc, char** argv) {
+    chip8 Chip8;
+    if (argc > 1) Chip8::loadFile(argv[1]);
+    else Chip8::loadFile("TETRIS"); 
+    Chip8::loop;
     return 0;
 }
 
