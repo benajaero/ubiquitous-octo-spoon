@@ -8,13 +8,14 @@ class chip8 {
     private:
         unsigned char memory[4096];
         unsigned int pc;
-        unsigned char V[16]; //data registers
+        unsigned char V[16]; // data registers
         unsigned short I; //address register
         unsigned short stack[24];
         unsigned short sp;
         unsigned int timer;
         unsigned int soundTimer;
         unsigned char keyboard[16];
+        unsigned char gfx[2048];
         unsigned char fontSet[80] = {
           0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
           0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -53,8 +54,8 @@ class chip8 {
         void loadFile(char* dir) {
             std::ifstream rom(dir, std::ios::binary);
             for (int i = 0; i < 3584; i++) {
-                printf("%X", memory[512 + i]);
                 if (rom) rom >> memory[i + 512];
+                printf("%X", memory[512 + i]);
             }
             rom.close(); 
         }
@@ -89,8 +90,8 @@ class chip8 {
                         case 0x00EE:
                             pc= stack[--sp];
                         break;
-                        //default:
-                            //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                        default:
+                            printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
                     } 
                 break;
                 case 0x1000:
@@ -175,8 +176,8 @@ class chip8 {
                             V[0xF] = V[x] & 0xF000;
                             V[x] = V[x] << 1;
                         break;
-                        //default:
-                            //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                        default:
+                            printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
                     }
                 break;
 
@@ -216,8 +217,8 @@ class chip8 {
 
                         break;
 
-                        //default:
-                            //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                        default:
+                            printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
                     }
                 break;
 
@@ -255,8 +256,8 @@ class chip8 {
 
                     }
                 break;
-                //default:
-                    //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                default:
+                    printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
 
             }
         }
