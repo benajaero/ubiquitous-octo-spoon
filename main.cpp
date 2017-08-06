@@ -15,24 +15,48 @@ class chip8 {
         unsigned int timer;
         unsigned int soundTimer;
         unsigned char keyboard[16];
-        unsigned char fontSet[80]; //I don't know how big this is yet.
+        unsigned char fontSet[80] = {
+          0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+          0x20, 0x60, 0x20, 0x20, 0x70, // 1
+          0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+          0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+          0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+          0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+          0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+          0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+          0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+          0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+          0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+          0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+          0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+          0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+          0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+          0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+        };
 
     public:
         chip8() {
             pc = 0x200;
             I = 0;
             sp = 0;
+            for (int i = 0; i < sizeof fontSet / sizeof fontSet[0]; i++) {
+                memory[i] = fontSet[i];
+            }
         }
         void loop(sf::Window& window) {
             while(window.isOpen()) {
+                input(window);
                 opcode();
-                input();
-                pc += 2;
             }
         }
 
-        void loadFile(char* name) {
-            
+        void loadFile(char* dir) {
+            std::ifstream rom(dir, std::ios::binary);
+            for (int i = 0; i < 3584; i++) {
+                printf("%X", memory[512 + i]);
+                if (rom) rom >> memory[i + 512];
+            }
+            rom.close(); 
         }
 
         void clearScreen() {
@@ -43,8 +67,11 @@ class chip8 {
 
         }
 
-        void input() {
-
+        void input(sf::Window& window) {
+            sf::Event event;
+            while(window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) window.close();
+            }
         }
         void opcode() {
             unsigned short opcode = memory[pc] << 8 | memory[pc+1];
@@ -62,8 +89,8 @@ class chip8 {
                         case 0x00EE:
                             pc= stack[--sp];
                         break;
-                        default:
-                            printf("Unknown opcode, %X at program counter number %X", opcode, pc);
+                        //default:
+                            //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
                     } 
                 break;
                 case 0x1000:
@@ -148,8 +175,8 @@ class chip8 {
                             V[0xF] = V[x] & 0xF000;
                             V[x] = V[x] << 1;
                         break;
-                        default:
-                            printf("Unknown opcode, %X at program counter number %X", opcode, pc);
+                        //default:
+                            //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
                     }
                 break;
 
@@ -189,8 +216,8 @@ class chip8 {
 
                         break;
 
-                        default:
-                            printf("Unknown opcode, %X at program counter number %X", opcode, pc);
+                        //default:
+                            //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
                     }
                 break;
 
@@ -228,8 +255,8 @@ class chip8 {
 
                     }
                 break;
-                default:
-                    printf("Unknown opcode, %X at program counter number %X", opcode, pc);
+                //default:
+                    //printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
 
             }
         }
@@ -238,9 +265,10 @@ class chip8 {
 int main(int argc, char** argv) {
     chip8 Chip8;
     if (argc > 1) Chip8.loadFile(argv[1]);
-    else Chip8.loadFile("TETRIS"); 
+    else Chip8.loadFile("./games/TETRIS"); 
 
     sf::Window window(sf::VideoMode(800, 600), "Chip-8 Window");
+    Chip8.loop(window);
     return 0;
 }
 
