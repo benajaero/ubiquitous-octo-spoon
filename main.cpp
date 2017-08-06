@@ -22,10 +22,9 @@ class chip8 {
             pc = 0x200;
             I = 0;
             sp = 0;
-            clearScreen();
         }
-        void loop() {
-            while(true) {
+        void loop(sf::Window& window) {
+            while(window.isOpen()) {
                 opcode();
                 input();
                 pc += 2;
@@ -49,10 +48,10 @@ class chip8 {
         }
         void opcode() {
             unsigned short opcode = memory[pc] << 8 | memory[pc+1];
-            int x = (opcode & 0x0F00) >> 4;
-            int y = (opcode & 0x00F0) >> 8;
-            int NNN = opcode & 0x0FFF;
-            int NN = opcode & 0x00FF;
+            unsigned int x = (opcode & 0x0F00) >> 4;
+            unsigned int y = (opcode & 0x00F0) >> 8;
+            unsigned int NNN = opcode & 0x0FFF;
+            unsigned int NN = opcode & 0x00FF;
 
             switch (opcode & 0xF000) {
                 case 0x0000:
@@ -64,7 +63,7 @@ class chip8 {
                             pc= stack[--sp];
                         break;
                         default:
-                            printf("Unknown opcode, %d at program counter number %d", opcode, pc);
+                            printf("Unknown opcode, %X at program counter number %X", opcode, pc);
                     } 
                 break;
                 case 0x1000:
@@ -150,7 +149,7 @@ class chip8 {
                             V[x] = V[x] << 1;
                         break;
                         default:
-                            printf("Unknown opcode, %d at program counter number %d", opcode, pc);
+                            printf("Unknown opcode, %X at program counter number %X", opcode, pc);
                     }
                 break;
 
@@ -191,7 +190,7 @@ class chip8 {
                         break;
 
                         default:
-                            printf("Unknown opcode, %d at program counter number %d", opcode, pc);
+                            printf("Unknown opcode, %X at program counter number %X", opcode, pc);
                     }
                 break;
 
@@ -230,7 +229,7 @@ class chip8 {
                     }
                 break;
                 default:
-                    printf("Unknown opcode, %d at program counter number %d", opcode, pc);
+                    printf("Unknown opcode, %X at program counter number %X", opcode, pc);
 
             }
         }
@@ -238,9 +237,10 @@ class chip8 {
 
 int main(int argc, char** argv) {
     chip8 Chip8;
-    if (argc > 1) Chip8::loadFile(argv[1]);
-    else Chip8::loadFile("TETRIS"); 
-    Chip8::loop;
+    if (argc > 1) Chip8.loadFile(argv[1]);
+    else Chip8.loadFile("TETRIS"); 
+
+    sf::Window window(sf::VideoMode(800, 600), "Chip-8 Window");
     return 0;
 }
 
