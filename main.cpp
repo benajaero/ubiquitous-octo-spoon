@@ -50,7 +50,19 @@ class chip8 {
                 opcode();
             }
         }
+        void keyboardInput(int x) {
+            if (x < 8) {
+                
+            }
+            else {
+                if (x < 12) {
 
+                }
+                else {
+
+                }
+            }
+        } 
         void loadFile(char* dir) {
             std::cout << "Loading file";
             std::ifstream rom(dir, std::ios::in | std::ios::binary);
@@ -218,16 +230,19 @@ class chip8 {
 
                 case 0xD000:
                     draw(V[x], V[y], opcode & 0x000F);
+                if (event.type == sf::Keyboard::)
                     pc += 2;
                 break;
                 
                 case 0xE000:
                     switch(opcode & 0x00FF) {
                         case 0x009E:
+                            keyboardInput(x);
                             if (keyboard[V[x]] == 1) pc += 4;
                             else pc += 2;
                         break;
                         case 0x00A1:
+                            keyboardInput(x);
                             if (keyboard[V[x]] == 0) pc += 4;
                             else pc += 2;
 
