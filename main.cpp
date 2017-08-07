@@ -50,21 +50,66 @@ class chip8 {
                 opcode();
             }
         }
+        sf::Keyboard::Key translateToSfml(int x) {
+            switch(x) {
+                case 0:
+                    return sf::Keyboard::Num1;
+                break;
+                case 1:
+                    return sf::Keyboard::Num2;
+                break;
+                case 3: 
+                    return sf::Keyboard::Num3;
+                break;
+                case 4:
+                    return sf::Keyboard::Num4;
+                break;
+                case 5:
+                    return sf::Keyboard::Q;
+                break;
+                case 6:
+                    return sf::Keyboard::W;
+                break;
+                case 7:
+                    return sf::Keyboard::E;
+                break;
+                case 8:
+                    return sf::Keyboard::R;
+                break;
+                case 9:
+                    return sf::Keyboard::A;
+                break;
+                case 10:
+                    return sf::Keyboard::S;
+                break;
+                case 11:
+                    return sf::Keyboard::D;
+                break;
+                case 12:
+                    return sf::Keyboard::F;
+                break;
+                case 13:
+                    return sf::Keyboard::Z;
+                break;
+                case 14:
+                    return sf::Keyboard::X;
+                break;
+                case 15:
+                    return sf::Keyboard::C;
+                break;
+                case 16:
+                    return sf::Keyboard::V;
+                break;
+                default:
+                    std::cerr << "Keyboard condition not checked" << std::endl;
+                    exit(3);
+            }
+        }
         void keyboardInput(int x) {
-            if (x < 8) {
-                
-            }
-            else {
-                if (x < 12) {
-
-                }
-                else {
-
-                }
-            }
+            keyboard[x] = sf::Keyboard::isKeyPressed(translateToSfml(x));
         } 
         void loadFile(char* dir) {
-            std::cout << "Loading file";
+            std::cout << "Loading file\n";
             std::ifstream rom(dir, std::ios::in | std::ios::binary);
             if (rom) {
                 rom.seekg(0, std::ios::end);
@@ -230,7 +275,6 @@ class chip8 {
 
                 case 0xD000:
                     draw(V[x], V[y], opcode & 0x000F);
-                if (event.type == sf::Keyboard::)
                     pc += 2;
                 break;
                 
