@@ -52,10 +52,24 @@ class chip8 {
         }
 
         void loadFile(char* dir) {
-            std::ifstream rom(dir, std::ios::binary);
-            for (int i = 0; i < 3584; i++) {
-                if (rom) rom >> memory[i + 512];
-                printf("%X", memory[512 + i]);
+            std::cout << "Loading file";
+            std::ifstream rom(dir, std::ios::in | std::ios::binary);
+            if (rom) {
+                rom.seekg(0, std::ios::end);
+                int size = rom.tellg();
+                if (size > 0xFFF - 0x200) {
+                    std::cerr << "Ram is too large" << std::endl;
+                    exit(1);
+                }
+                else {
+                    char* romm = (char* )(&(memory[0x200]));
+                    rom.seekg(0, std::ios::beg); //back to beginning
+                    rom.read(romm, size);
+                }
+            }
+            else {
+                std::cerr << "No file found" << std::endl;
+                exit(1);
             }
             rom.close(); 
         }
@@ -92,6 +106,7 @@ class chip8 {
                         break;
                         default:
                             printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                            exit(2);
                     } 
                 break;
                 case 0x1000:
@@ -178,6 +193,7 @@ class chip8 {
                         break;
                         default:
                             printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                            exit(2);
                     }
                 break;
 
@@ -219,6 +235,7 @@ class chip8 {
 
                         default:
                             printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                            exit(2);
                     }
                 break;
 
@@ -258,6 +275,7 @@ class chip8 {
                 break;
                 default:
                     printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
+                    exit(2);
 
             }
         }
