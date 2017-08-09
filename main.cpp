@@ -47,7 +47,7 @@ class chip8 {
                 memory[i] = fontSet[i];
             }
         }
-        void loop(sf::Window& window) {
+        void loop(sf::RenderWindow& window) {
             while(window.isOpen()) {
                 input(window);
                 opcode(window);
@@ -57,11 +57,14 @@ class chip8 {
                     timer--;
                 }
                 if (drawFlag) {
-                    drawScreen();
+                    std::cout << "Drawing" << std::endl;
+                    drawScreen(window);
                 }
             }
         }
-        void drawScreen() {
+        void drawScreen(sf::RenderWindow& window) {
+            drawFlag = false;
+            window.clear(sf::Color::Black);
             float xtileoffset = 800.0/64.0;
             float ytileoffset = 600.0/32.0;
             for (int y = 0; y < 32; y++) {
@@ -71,121 +74,114 @@ class chip8 {
                     tile[0].position = sf::Vector2f((x + 1) * xtileoffset, y * ytileoffset);
                     tile[0].position = sf::Vector2f(x * xtileoffset, (y + 1) * ytileoffset);
                     tile[0].position = sf::Vector2f((x + 1) * xtileoffset, (y + 1) * ytileoffset);
-                    sf::Color color;
-                    if (gfx[x + (y * 64)] == 1) {
-                        color.r = 0; color.b = 0; color.g = 0;
-                    }
-                    else color = sf::Color::White; 
                     for (int i = 0; i < 4; i++) {
-                        tile[i].color = color;
+                        if (gfx[x + (y * 64)] == 1) tile[i].color = sf::Color::White;
+                        else tile[i].color = sf::Color::Black;
                     }
+
+                    window.draw(tile);
                 }
             }
+            window.display();
         }
-        sf::Keyboard::Key translateToSfml(int x) {
+        sf::Keyboard::Key translateToSfml(char x) {
             switch(x) {
-                case 0:
+                case 0x0:
                     return sf::Keyboard::Num1;
                 break;
-                case 1:
+                case 0x1:
                     return sf::Keyboard::Num2;
                 break;
-                case 3: 
+                case 0x3: 
                     return sf::Keyboard::Num3;
                 break;
-                case 4:
+                case 0x4:
                     return sf::Keyboard::Num4;
                 break;
-                case 5:
+                case 0x5:
                     return sf::Keyboard::Q;
                 break;
-                case 6:
+                case 0x6:
                     return sf::Keyboard::W;
                 break;
-                case 7:
+                case 0x7:
                     return sf::Keyboard::E;
                 break;
-                case 8:
+                case 0x8:
                     return sf::Keyboard::R;
                 break;
-                case 9:
+                case 0x9:
                     return sf::Keyboard::A;
                 break;
-                case 10:
+                case 0xA:
                     return sf::Keyboard::S;
                 break;
-                case 11:
+                case 0xB:
                     return sf::Keyboard::D;
                 break;
-                case 12:
+                case 0xC:
                     return sf::Keyboard::F;
                 break;
-                case 13:
+                case 0xD:
                     return sf::Keyboard::Z;
                 break;
-                case 14:
+                case 0xE:
                     return sf::Keyboard::X;
                 break;
-                case 15:
+                case 0xF:
                     return sf::Keyboard::C;
-                break;
-                case 16:
-                    return sf::Keyboard::V;
                 break;
                 default:
                     std::cerr << "Keyboard condition not checked" << std::endl;
                     exit(3);
             }
         }
-        int translateToKeys(sf::Keyboard::Key key) {
+        char translateToKeys(sf::Keyboard::Key key) {
             switch(key) {
                 case sf::Keyboard::Num1:
-                    return 0; 
+                    return 0x0; 
                 break;
                 case sf::Keyboard::Num2:
-                    return 1; 
+                    return 0x1; 
                 break;
                 case sf::Keyboard::Num3: 
-                    return 3;
+                    return 0x3;
                 break;
                 case sf::Keyboard::Num4:
-                    return 4; 
+                    return 0x4; 
                 break;
                 case sf::Keyboard::Q:
-                    return 5;
+                    return 0x5;
                 break;
                 case sf::Keyboard::W:
-                    return 6;
+                    return 0x6;
                 break;
                 case sf::Keyboard::E:
-                    return 7;
+                    return 0x7;
                 break;
                 case sf::Keyboard::R:
-                    return 8;
+                    return 0x8;
                 break;
                 case sf::Keyboard::A:
-                    return 9;
+                    return 0x9;
                 break;
                 case sf::Keyboard::S:
-                    return 10;
+                    return 0xA;
                 break;
                 case sf::Keyboard::D:
-                    return 11;
+                    return 0xB;
                 break;
                 case sf::Keyboard::F:
-                    return 12;
+                    return 0xC;
                 break;
                 case sf::Keyboard::Z:
-                    return 13;
+                    return 0xD;
                 break;
                 case sf::Keyboard::X:
-                    return 14;
+                    return 0xE;
                 break;
                 case sf::Keyboard::C:
-                    return 15;
-                break;
-                case sf::Keyboard::V:
-                    return 16;
+                    return 0xF;
                 break;
                 default:
                     std::cerr << "Keyboard condition not checked" << std::endl;
@@ -193,7 +189,7 @@ class chip8 {
             }
         }
 
-        void keyboardInput(int x) {
+        void keyboardInput(char x) {
             keyboard[x] = sf::Keyboard::isKeyPressed(translateToSfml(x));
         } 
         void loadFile(char* dir) {
@@ -240,14 +236,15 @@ class chip8 {
             drawFlag = true;
         }
 
-        void input(sf::Window& window) {
+        void input(sf::RenderWindow& window) {
             sf::Event event;
             while(window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) window.close();
             }
         }
-        void opcode(sf::Window& window) {
+        void opcode(sf::RenderWindow& window) {
             unsigned short opcode = memory[pc] << 8 | memory[pc+1];
+            printf("Doing opcode %X \n", opcode);
             unsigned int x = (opcode & 0x0F00) >> 4;
             unsigned int y = (opcode & 0x00F0) >> 8;
             unsigned int NNN = opcode & 0x0FFF;
@@ -478,7 +475,7 @@ int main(int argc, char** argv) {
     if (argc > 1) Chip8.loadFile(argv[1]);
     else Chip8.loadFile("./games/TETRIS"); 
 
-    sf::Window window(sf::VideoMode(800, 600), "Chip-8 Window");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Chip-8 Window");
     Chip8.loop(window);
     return 0;
 }
