@@ -423,15 +423,22 @@ class chip8 {
                         break;
 
                         case 0x000A:
-                           //wait for key 
-                        for (int i = 0; i < 16; i++) {
-                            if (keyboard[i] == 1) {
-                                V[x] = i;
-                                pc += 2;
-                                return;
-                            }
-                        } 
-                        break;
+                        {
+                                bool keyPressed = false;
+                                for (int i = 0; i < 16; i++) {
+                                    if (keyboard[i] == 1) {
+                                        V[x] = i;
+                                        keyPressed = true;
+                                    }
+                                } 
+                                if (keyPressed) {
+                                    pc += 2;
+                                } else {
+                                    return;
+                                }
+
+                        }
+                       break;
 
                         case 0x0015:
                             timer = V[x];
