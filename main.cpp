@@ -18,7 +18,7 @@ class chip8 {
         unsigned char gfx[2048];
         sf::Clock clock;
         double fps = 1e6f/60.f;
-        bool drawFlag = 0;
+        bool drawFlag = false;
         unsigned char fontSet[80] = {
           0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
           0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -48,6 +48,8 @@ class chip8 {
             }
         }
         void loop(sf::RenderWindow& window) {
+            
+            clearScreen(window);
             while(window.isOpen()) {
                 input(window);
                 opcode(window);
@@ -133,7 +135,7 @@ class chip8 {
                 break;
                 default:
                     std::cerr << "Keyboard condition not checked" << std::endl;
-                    exit(3);
+                break;
             }
         }
         char translateToKeys(sf::Keyboard::Key key) {
@@ -185,7 +187,7 @@ class chip8 {
                 break;
                 default:
                     std::cerr << "Keyboard condition not checked" << std::endl;
-                    exit(3);
+                    return -1;
             }
         }
 
@@ -215,8 +217,9 @@ class chip8 {
             rom.close(); 
         }
 
-        void clearScreen() {
-
+        void clearScreen(sf::RenderWindow& window) {
+            window.clear(sf::Color::Black);
+            for (int i = 0; i < 2048; i++) gfx[i] = 0;
         }
 
         void draw(char x, char y, char height) {
@@ -240,6 +243,18 @@ class chip8 {
             sf::Event event;
             while(window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) window.close();
+                else if (event.type == sf::Event::KeyPressed) {
+                    char index = translateToKeys(event.key.code);
+                    if (index >= 0x0 && index <= 0xF) {
+                        keyboard[index] = 1;
+                    } 
+                }
+                else if (event.type == sf::Event::KeyReleased) {
+                    char index = translateToKeys(event.key.code);
+                    if (index >= 0x0 && index <= 0xF) {
+                        keyboard[index] = 0;
+                    } 
+                }
             }
         }
         void opcode(sf::RenderWindow& window) {
@@ -256,10 +271,14 @@ class chip8 {
                 case 0x0000:
                     switch(opcode & 0x00FF) {
                         case 0x00E0:
-                            clearScreen();   
+                            for (int i = 0; i < 2048; i++) gfx[i] = 0x0;
+                            drawFlag = true;
+                            pc += 2;
                         break;
                         case 0x00EE:
-                            pc= stack[--sp];
+                            --sp;
+                            pc = stack[sp];
+                            pc += 2;
                         break;
                         default:
                             printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
@@ -381,12 +400,10 @@ class chip8 {
                 case 0xE000:
                     switch(opcode & 0x00FF) {
                         case 0x009E:
-                            keyboardInput(V[x]);
                             if (keyboard[V[x]] == 1) pc += 4;
                             else pc += 2;
                         break;
                         case 0x00A1:
-                            keyboardInput(V[x]);
                             if (keyboard[V[x]] == 0) pc += 4;
                             else pc += 2;
 
@@ -407,16 +424,13 @@ class chip8 {
 
                         case 0x000A:
                            //wait for key 
-                           do {
-                               while(window.pollEvent(event)) {
-                                   if (event.type == sf::Event::KeyPressed) {
-                                       V[x] = translateToKeys(event.key.code); 
-                                       rightEvent = 1;
-                                       pc += 2;
-                                       break;
-                                   }
-                               }
-                           } while (!rightEvent);
+                        for (int i = 0; i < 16; i++) {
+                            if (keyboard[i] == 1) {
+                                V[x] = i;
+                                pc += 2;
+                                return;
+                            }
+                        } 
                         break;
 
                         case 0x0015:
