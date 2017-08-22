@@ -15,7 +15,7 @@ class chip8 {
         unsigned int timer;
         unsigned int soundTimer;
         unsigned char keyboard[16];
-        unsigned char gfx[2048];
+        unsigned char gfx[4096];
         sf::Clock clock;
         double fps = 1e6f/60.f;
         bool drawFlag = false;
@@ -43,13 +43,13 @@ class chip8 {
             pc = 0x200;
             I = 0;
             sp = 0;
-            for (int i = 0; i < sizeof fontSet / sizeof fontSet[0]; i++) {
+            for (int i = 0; i < (int)sizeof fontSet / (int)sizeof fontSet[0]; i++) {
                 memory[i] = fontSet[i];
             }
+            for (int i = 0; i < 2048; i++) gfx[i] = 0;
         }
         void loop(sf::RenderWindow& window) {
-            
-            clearScreen(window);
+            input(window);
             while(window.isOpen()) {
                 input(window);
                 opcode(window);
@@ -71,15 +71,14 @@ class chip8 {
             float ytileoffset = 600.0/32.0;
             for (int y = 0; y < 32; y++) {
                 for (int x = 0; x < 64; x++) {
-                    sf::VertexArray tile(sf::Quads, 4);
-                    tile[0].position = sf::Vector2f(x * xtileoffset, y * ytileoffset);
-                    tile[0].position = sf::Vector2f((x + 1) * xtileoffset, y * ytileoffset);
-                    tile[0].position = sf::Vector2f(x * xtileoffset, (y + 1) * ytileoffset);
-                    tile[0].position = sf::Vector2f((x + 1) * xtileoffset, (y + 1) * ytileoffset);
+                    sf::RectangleShape tile(sf::Vector2f(xtileoffset, ytileoffset));
+                    tile.setPosition(x * xtileoffset, y * ytileoffset);
+
                     for (int i = 0; i < 4; i++) {
-                        if (gfx[x + (y * 64)] == 1) tile[i].color = sf::Color::White;
-                        else tile[i].color = sf::Color::Black;
+                        if (gfx[x + (y * 64)] == 0) tile.setFillColor(sf::Color::Black);
+                        else tile.setFillColor(sf::Color::White);                    
                     }
+
 
                     window.draw(tile);
                 }
@@ -138,7 +137,7 @@ class chip8 {
                 break;
             }
         }
-        char translateToKeys(sf::Keyboard::Key key) {
+        unsigned char translateToKeys(sf::Keyboard::Key key) {
             switch(key) {
                 case sf::Keyboard::Num1:
                     return 0x0; 
@@ -191,7 +190,7 @@ class chip8 {
             }
         }
 
-        void keyboardInput(char x) {
+        void keyboardInput(unsigned char x) {
             keyboard[x] = sf::Keyboard::isKeyPressed(translateToSfml(x));
         } 
         void loadFile(char* dir) {
@@ -225,13 +224,15 @@ class chip8 {
         void draw(char x, char y, char height) {
             unsigned short pixel;
             V[0xF] = 0;
-
             for (int yline = 0; yline < height; yline++) {
                 pixel = memory[I + yline];
+                std::cout << I + yline << "\n";
                 for (int xX = 0; xX < 8; xX++) {
                     if ((pixel & (0x80 >> xX)) != 0) {
-                        if (gfx[x + xX + ((y + yline) * 64)] == 1) V[0xF] = 1;
-                        gfx[x + xX + ((y + yline) * 64)] ^= 1;
+                        int gfxCoord = x + xX + ((y + yline) * 64);
+                        if (gfx[gfxCoord] == 1) V[0xF] = 1;
+                        printf("%d\n", gfx[gfxCoord]);
+                        gfx[gfxCoord] ^= 1;
                     } 
                 }
             }
@@ -242,15 +243,16 @@ class chip8 {
         void input(sf::RenderWindow& window) {
             sf::Event event;
             while(window.pollEvent(event)) {
+                std::cout << "Event here";
                 if (event.type == sf::Event::Closed) window.close();
                 else if (event.type == sf::Event::KeyPressed) {
-                    char index = translateToKeys(event.key.code);
+                    unsigned char index = translateToKeys(event.key.code);
                     if (index >= 0x0 && index <= 0xF) {
                         keyboard[index] = 1;
                     } 
                 }
                 else if (event.type == sf::Event::KeyReleased) {
-                    char index = translateToKeys(event.key.code);
+                    unsigned char index = translateToKeys(event.key.code);
                     if (index >= 0x0 && index <= 0xF) {
                         keyboard[index] = 0;
                     } 
@@ -264,8 +266,6 @@ class chip8 {
             unsigned int y = (opcode & 0x00F0) >> 8;
             unsigned int NNN = opcode & 0x0FFF;
             unsigned int NN = opcode & 0x00FF;
-            bool rightEvent = 0;
-            sf::Event event;
 
             switch (opcode & 0xF000) {
                 case 0x0000:
@@ -366,6 +366,7 @@ class chip8 {
                         case 0x000E:
                             V[0xF] = V[x] & 0xF000;
                             V[x] = V[x] << 1;
+                            pc += 2;
                         break;
                         default:
                             printf("Unknown opcode, %X at program counter number %X \n", opcode, pc);
@@ -494,7 +495,7 @@ class chip8 {
 int main(int argc, char** argv) {
     chip8 Chip8;
     if (argc > 1) Chip8.loadFile(argv[1]);
-    else Chip8.loadFile("./games/TETRIS"); 
+    else Chip8.loadFile("./games/PONG"); 
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "Chip-8 Window");
     Chip8.loop(window);
